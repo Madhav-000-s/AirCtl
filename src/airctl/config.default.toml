@@ -1,0 +1,43 @@
+# AirCtl default configuration.
+# The live copy lives at %APPDATA%\airctl\config.toml and hot-reloads on save.
+
+[camera]
+device = 0
+backend = "dshow"   # DirectShow; the MSMF default is slow to open on Windows
+width = 640
+height = 480
+fps = 30
+
+[recognition]
+confirm_frames = 5        # frames a pose must hold before it fires (~150 ms)
+cooldown_ms = 400         # lockout after a discrete action
+arm_timeout_s = 10        # armed window, refreshed by activity
+arm_hold_s = 1.0          # open-palm hold to arm / fist hold to disarm
+pinch_enter = 0.30        # pinch hysteresis, hand-relative units
+pinch_exit = 0.45
+swipe_velocity = 1.2      # image-widths per second
+max_activation_speed = 0.8  # poses must be this still to confirm
+min_hand_size = 0.12      # ignore hands smaller than this (background people)
+
+# Gestures: open_palm (arms), fist (disarms), peace, point_up, point_down,
+# three, shaka, pinch (thumb+index), pinch2 (thumb+middle),
+# swipe_left/right (open palm moving fast), swipe2_left/right (peace moving).
+#
+# Actions: media.play_pause | media.next | media.prev
+#          audio.volume_step (args, repeat_ms) | audio.mute_toggle
+#          audio.volume_pinch (sensitivity) | window.switcher (step_dist)
+#          desktop.left | desktop.right
+#          key (chord) | shell (cmd) | launch (target)
+
+[modes.default]
+"peace" = { action = "media.play_pause" }
+"point_up" = { action = "audio.volume_step", args = "+0.05", repeat_ms = 250 }
+"point_down" = { action = "audio.volume_step", args = "-0.05", repeat_ms = 250 }
+"shaka" = { action = "audio.mute_toggle" }
+"pinch" = { action = "audio.volume_pinch", sensitivity = 1.5 }
+"pinch2" = { action = "window.switcher", step_dist = 0.1 }
+"swipe_right" = { action = "media.next" }
+"swipe_left" = { action = "media.prev" }
+"swipe2_right" = { action = "desktop.right" }
+"swipe2_left" = { action = "desktop.left" }
+"three" = { action = "key", chord = "win+shift+s" }   # screenshot snip

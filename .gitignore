@@ -1,0 +1,28 @@
+# Design doc (kept local)
+gesture-control-design-doc-windows.md
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# Virtual environment
+.venv/
+
+# Test / tooling caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Editors / OS
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
+
+# Local session recordings (v2 --record feature)
+*.npz
+
+.claude

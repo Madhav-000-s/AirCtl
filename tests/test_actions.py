@@ -19,6 +19,8 @@ DOC_MAPPING = {
     "pinch": {"action": "audio.volume_pinch", "sensitivity": 1.5},
     "pinch2": {"action": "window.switcher", "step_dist": 0.1},
     "swipe2_right": {"action": "desktop.right"},
+    "swipe3_right": {"action": "window.next"},
+    "swipe3_left": {"action": "window.prev"},
 }
 
 
@@ -116,6 +118,49 @@ def test_window_switcher_lifecycle():
         ("window.switcher_step", False),
         ("window.switcher_end",),
     ]
+
+
+def test_window_cycle_steps_through_snapshot():
+    actions = build_action_map(DOC_MAPPING)
+    b, calls = fake_backends()  # FakeWindow desktop: [10, 20, 30], fg=10
+    a = actions["swipe3_right"]
+    # Three quick flicks step forward 10 -> 20 -> 30 -> 10 (wraps).
+    a.on_activate(GestureActivated(0.0, "swipe3_right", None), b)
+    a.on_activate(GestureActivated(0.3, "swipe3_right", None), b)
+    a.on_activate(GestureActivated(0.6, "swipe3_right", None), b)
+    assert [c for c in calls if c[0] == "window.focus_window"] == [
+        ("window.focus_window", 20),
+        ("window.focus_window", 30),
+        ("window.focus_window", 10),
+    ]
+
+
+def test_window_cycle_prev_goes_backward():
+    actions = build_action_map(DOC_MAPPING)
+    b, calls = fake_backends()
+    a = actions["swipe3_left"]
+    a.on_activate(GestureActivated(0.0, "swipe3_left", None), b)  # 10 -> 30 (wrap)
+    assert calls[-1] == ("window.focus_window", 30)
+
+
+def test_window_cycle_pause_restarts_session_from_foreground():
+    actions = build_action_map(DOC_MAPPING)
+    b, calls = fake_backends()
+    a = actions["swipe3_right"]
+    a.on_activate(GestureActivated(0.0, "swipe3_right", None), b)  # 10 -> 20
+    assert b.window.get_foreground() == 20
+    # Long pause (> session_gap_s): new session starts from current fg (20).
+    a.on_activate(GestureActivated(10.0, "swipe3_right", None), b)  # 20 -> 30
+    assert calls[-1] == ("window.focus_window", 30)
+
+
+def test_window_cycle_no_windows_is_noop():
+    actions = build_action_map(DOC_MAPPING)
+    b, calls = fake_backends()
+    b.window.windows = []
+    a = actions["swipe3_right"]
+    a.on_activate(GestureActivated(0.0, "swipe3_right", None), b)
+    assert calls == []
 
 
 def test_dispatcher_routes_events_to_actions():

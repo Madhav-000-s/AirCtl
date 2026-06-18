@@ -90,6 +90,17 @@ def test_peace_swipe_uses_two_finger_prefix():
     assert swipes == ["swipe2_left"]
 
 
+def test_three_finger_swipe_uses_third_prefix():
+    clf = PoseClassifier()
+    swipes = []
+    for i in range(12):
+        t = i / FPS
+        cf = feed(clf, hands.three(center=(0.2 + 2.0 * t, 0.5)), t)
+        if cf.swipe:
+            swipes.append(cf.swipe)
+    assert swipes == ["swipe3_right"]
+
+
 def test_no_swipe_without_gating_pose():
     clf = PoseClassifier()
     for i in range(12):

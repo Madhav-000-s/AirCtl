@@ -3,6 +3,7 @@ name = "airctl"
 version = "0.1.0"
 description = "AirCtl - real-time gesture-controlled system interface for Windows"
 readme = "README.md"
+license = { file = "LICENSE" }
 requires-python = ">=3.12"
 dependencies = [
     "mediapipe>=0.10.14,<0.11",

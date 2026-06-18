@@ -38,6 +38,13 @@ _POSE_PATTERNS: tuple[tuple[tuple[bool | None, ...], str], ...] = (
 # a "point" splits into point_up / point_down.
 _POINT_DIR_THRESHOLD = 0.0
 
+# Poses that, when swept horizontally, emit a swipe event. The prefix names
+# the event family so one pose can drive a distinct action:
+#   open palm  -> swipe_left/right        (media prev/next by default)
+#   peace      -> swipe2_left/right       (virtual desktop by default)
+#   three      -> swipe3_left/right       (switch window by default)
+_SWIPE_GATES = {"open_palm": "swipe", "peace": "swipe2", "three": "swipe3"}
+
 
 @dataclass(frozen=True)
 class ClassifiedFrame:
@@ -151,11 +158,8 @@ class PoseClassifier:
         self, t: float, pose: str | None, velocity: np.ndarray
     ) -> str | None:
         cfg = self.cfg
-        if pose == "open_palm":
-            prefix = "swipe"
-        elif pose == "peace":
-            prefix = "swipe2"
-        else:
+        prefix = _SWIPE_GATES.get(pose)
+        if prefix is None:
             return None
         if t - self._last_swipe_t < cfg.swipe_refractory_s:
             return None

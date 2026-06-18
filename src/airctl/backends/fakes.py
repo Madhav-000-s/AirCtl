@@ -53,6 +53,14 @@ class FakeInput(_Recorder):
 
 
 class FakeWindow(_Recorder):
+    def __init__(self, calls: list, windows: list[int] | None = None,
+                 foreground: int | None = None) -> None:
+        super().__init__(calls)
+        # A small fake desktop: window handles in Z-order, frontmost first.
+        self.windows = windows if windows is not None else [10, 20, 30]
+        self.foreground = (foreground if foreground is not None
+                           else (self.windows[0] if self.windows else 0))
+
     def switcher_begin(self) -> None:
         self.calls.append(("window.switcher_begin",))
 
@@ -64,6 +72,19 @@ class FakeWindow(_Recorder):
 
     def desktop_switch(self, direction: str) -> None:
         self.calls.append(("window.desktop_switch", direction))
+
+    def list_windows(self) -> list[int]:
+        return list(self.windows)
+
+    def get_foreground(self) -> int:
+        return self.foreground
+
+    def window_title(self, hwnd: int) -> str:
+        return f"window-{hwnd}"
+
+    def focus_window(self, hwnd: int) -> None:
+        self.foreground = hwnd
+        self.calls.append(("window.focus_window", hwnd))
 
 
 class FakeMedia(_Recorder):

@@ -189,6 +189,49 @@ class DesktopSwitchAction(_DiscreteAction):
         b.window.desktop_switch(self.direction)
 
 
+class WindowCycleAction:
+    """Flick to the next/previous window via direct Win32 targeting (§5.3
+    tier 2). Each swipe brings one adjacent window straight to the front —
+    no Alt+Tab overlay.
+
+    Cycling needs a stable ordering, but every focus change reshuffles the
+    Z-order, so we snapshot the window list at the start of a "session" and
+    walk an index through it. Swipes within ``session_gap_s`` of each other
+    continue the same session (so three quick flicks step 1-2-3 through the
+    snapshot); a longer pause starts fresh from the current foreground window.
+    """
+
+    def __init__(self, direction: str, session_gap_s: float = 2.0) -> None:
+        if direction not in ("next", "prev"):
+            raise ValueError(f"bad window direction {direction!r}")
+        self.direction = direction
+        self.session_gap_s = session_gap_s
+        self._windows: list[int] = []
+        self._cursor = 0
+        self._last_t = float("-inf")
+
+    def on_activate(self, ev: GestureActivated, b: Backends) -> None:
+        windows = b.window.list_windows()
+        if not windows:
+            return
+        fresh = (ev.t - self._last_t > self.session_gap_s
+                 or not self._windows)
+        self._last_t = ev.t
+        if fresh:
+            self._windows = windows
+            fg = b.window.get_foreground()
+            self._cursor = windows.index(fg) if fg in windows else 0
+        step = 1 if self.direction == "next" else -1
+        self._cursor = (self._cursor + step) % len(self._windows)
+        b.window.focus_window(self._windows[self._cursor])
+
+    def on_hold(self, ev: GestureHeld, b: Backends) -> None:
+        pass
+
+    def on_release(self, ev: GestureReleased, b: Backends) -> None:
+        pass
+
+
 def build_action(spec: dict) -> Action:
     """Build one Action from a config spec table. Raises ValueError on a bad
     spec so config reload can reject the file without crashing."""
@@ -205,6 +248,9 @@ def build_action(spec: dict) -> Action:
             return VolumePinchAction(float(spec.get("sensitivity", 1.5)))
         case "window.switcher":
             return WindowSwitcherAction(float(spec.get("step_dist", 0.10)))
+        case "window.next" | "window.prev":
+            return WindowCycleAction(kind.removeprefix("window."),
+                                     float(spec.get("session_gap_s", 2.0)))
         case "desktop.left" | "desktop.right":
             return DesktopSwitchAction(kind.removeprefix("desktop."))
         case "key":

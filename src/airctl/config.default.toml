@@ -21,11 +21,15 @@ min_hand_size = 0.12      # ignore hands smaller than this (background people)
 
 # Gestures: open_palm (arms), fist (disarms), peace, point_up, point_down,
 # three, shaka, pinch (thumb+index), pinch2 (thumb+middle),
-# swipe_left/right (open palm moving fast), swipe2_left/right (peace moving).
+# swipe_left/right    (open palm moving fast),
+# swipe2_left/right   (peace moving fast),
+# swipe3_left/right   (three fingers moving fast).
 #
 # Actions: media.play_pause | media.next | media.prev
 #          audio.volume_step (args, repeat_ms) | audio.mute_toggle
-#          audio.volume_pinch (sensitivity) | window.switcher (step_dist)
+#          audio.volume_pinch (sensitivity)
+#          window.switcher (step_dist)      -> Alt+Tab overlay, hold + slide
+#          window.next | window.prev        -> jump straight to adjacent window
 #          desktop.left | desktop.right
 #          key (chord) | shell (cmd) | launch (target)
 
@@ -40,4 +44,6 @@ min_hand_size = 0.12      # ignore hands smaller than this (background people)
 "swipe_left" = { action = "media.prev" }
 "swipe2_right" = { action = "desktop.right" }
 "swipe2_left" = { action = "desktop.left" }
+"swipe3_right" = { action = "window.next" }   # three-finger flick: next window
+"swipe3_left" = { action = "window.prev" }    # three-finger flick: prev window
 "three" = { action = "key", chord = "win+shift+s" }   # screenshot snip
